@@ -6,7 +6,7 @@ Date: 16 April 2019
 
 Participant(s):
 
-Ilayda Yaman    https://www.linkedin.com/in/ilayda-yaman-9bba0ab1/
+Ilayda Yaman https://www.linkedin.com/in/ilayda-yaman-9bba0ab1/
 Allan Andersen 
 
 **************************************************************************
