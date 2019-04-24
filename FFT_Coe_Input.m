@@ -1,6 +1,3 @@
-clear all;
-clc;
-
 N = 2048;
 
 % FFT Coefficients
@@ -19,8 +16,9 @@ fclose(FID);
 
 % FFT Inputs
 % Generation of random numbers
-rn = rand([2*N,1]);
+rn = 1 + (-1-1).*rand([2*N,1]);
 
 FID2 = fopen('fft_inputs.txt','w+');
-fprintf(FID2,'%f\n',rn);
+fprintf(FID2,'%.12f\n',rn);
 fclose(FID2);
+
