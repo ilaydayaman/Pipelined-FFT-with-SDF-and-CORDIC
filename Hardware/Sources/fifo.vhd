@@ -5,9 +5,9 @@ use IEEE.NUMERIC_STD.all;
 
 entity FIFO is
   generic (
-    constant ROW : natural := 8; -- number of words
-    constant COL : natural := 4;  -- wordlength
-    constant NOFW : natural := 3); -- 2^NOFW = Number of words in registerfile
+    constant ROW : natural;-- := 8; -- number of words
+    constant COL : natural;-- := 4;  -- wordlength
+    constant NOFW : natural);-- := 3); -- 2^NOFW = Number of words in registerfile
   port (
     clk : in std_logic;
     rst : in std_logic;

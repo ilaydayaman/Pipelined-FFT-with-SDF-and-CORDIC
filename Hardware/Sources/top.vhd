@@ -5,15 +5,18 @@ use IEEE.NUMERIC_STD.ALL;
 entity top is
     Port ( rst : in STD_LOGIC;
            clk : in STD_LOGIC;
-           coefficients : in std_logic_vector(11 downto 0);
-           externalInput : in std_logic_vector(11 downto 0);
-           externalOutput : out std_logic_vector(11 downto 0));
+           modeSelectFftIfft : in STD_LOGIC;
+           coefficients      : in std_logic_vector(11 downto 0);
+           externalInputRe   : in std_logic_vector(11 downto 0);
+           externalInputIm   : in std_logic_vector(11 downto 0);
+           externalOutputRe  : out std_logic_vector(11 downto 0);
+           externalOutputIm  : out std_logic_vector(11 downto 0));
 end top;
 
 architecture Behavioral of top is
 
 component Control_Unit is
-    generic ( STATE : integer := 4 );
+    --generic ( STATE : integer := 4 );
     port (
         clk : in STD_LOGIC;
         rst : in STD_LOGIC;   
@@ -43,7 +46,7 @@ component Control_Unit is
   end component;
 
 component alu_mem is
-    generic ( STATE : integer := 4 );
+    --generic ( STATE : integer := 4 );
     port (
       rst : in STD_LOGIC;
       clk : in STD_LOGIC;   
@@ -69,8 +72,10 @@ component alu_mem is
       S9  : in STD_LOGIC;
       S10 : in STD_LOGIC;
       S11 : in STD_LOGIC;
-      externalInput : in std_logic_vector(11 downto 0);
-      externalOutput : out std_logic_vector(11 downto 0)
+      externalInputRe  : in std_logic_vector(11 downto 0);
+      externalInputIm  : in std_logic_vector(11 downto 0);
+      externalOutputRe : out std_logic_vector(11 downto 0);
+      externalOutputIm : out std_logic_vector(11 downto 0)
       );
   end component;
 
@@ -81,7 +86,7 @@ signal S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11 : std_logic;
 begin
 
 ControlUnitInst : Control_Unit
-    generic map ( STATE => 4 )
+    --generic map ( STATE => 4 )
     port map(  
       clk => clk,
       rst => rst,
@@ -135,8 +140,10 @@ ALU_MEM_UnitInst : alu_mem
       S9             => S9,
       S10            => S10,
       S11            => S11,
-      externalInput  => externalInput,
-      externalOutput => externalOutput
+      externalInputRe  => externalInputRe,
+      externalInputIm  => externalInputIm,
+      externalOutputRe => externalOutputRe,
+      externalOutputIm => externalOutputIm
       );
 
 end Behavioral;

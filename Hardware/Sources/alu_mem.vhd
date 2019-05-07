@@ -3,8 +3,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity alu_mem is
-    generic ( STATE : integer := 11 );
-    Port ( 
+    --generic ( STATE : integer := 11 );
+    Port (
          rst : in STD_LOGIC;
          clk : in STD_LOGIC;
          T1  : in STD_LOGIC;
@@ -29,122 +29,55 @@ entity alu_mem is
          S9  : in STD_LOGIC;
          S10 : in STD_LOGIC;
          S11 : in STD_LOGIC;
-         externalInput : in std_logic_vector(11 downto 0);
-         externalOutput : out std_logic_vector(11 downto 0)
+         --readAdd1 : std_logic_vector(9 downto 0);
+         externalInputRe  : in std_logic_vector(11 downto 0);
+         externalInputIm  : in std_logic_vector(11 downto 0);
+         externalOutputRe : out std_logic_vector(11 downto 0);
+         externalOutputIm : out std_logic_vector(11 downto 0)
          );
 end alu_mem;
 
 architecture Behavioral of alu_mem is
 
-component myButterfly
-    generic(
-             w1 : integer := 12
-             );
-    Port( 
-         n1 : in signed( (w1-1) downto 0);
-         n2 : in signed( (w1-1) downto 0);
-         sumOut : out signed( (w1-1) downto 0);
-         subOut : out signed( (w1-1) downto 0)
-         );
-end component;
+  component stage1
+  Port (
+       rst : in STD_LOGIC;
+       clk : in STD_LOGIC;
+       T1  : in STD_LOGIC;
+       S1  : in STD_LOGIC;
+       --readAdd : in std_logic_vector(9 downto 0);
+       stage1InputRe : in std_logic_vector(11 downto 0);
+       stage1InputIm : in std_logic_vector(11 downto 0);
+       stage1OutputRe : out std_logic_vector(12 downto 0);
+       stage1OutputIm : out std_logic_vector(12 downto 0)
+       );
+  end component;
 
-component complexMult
-    generic( 
-            w1 : integer := 12;
-            w2 : integer := 13
-            );
-    port(
-          clk       : in  std_logic;
-          rst       : in  std_logic; 
-          multInRe  : in signed( (w1-1) downto 0);
-          multInIm  : in signed( (w1-1) downto 0);
-          coeffRe   : in signed( (w1-1) downto 0);
-          coeffIm   : in signed( (w1-1) downto 0);
-          multOutRe : out signed( (w2-1) downto 0);
-          multOutIm : out signed( (w2-1) downto 0)
-        );
-end component;
+  signal stage2InputRe,stage2InputIm : std_logic_vector(12 downto 0);
+  signal stage3InputRe,stage3InputIm : std_logic_vector(11 downto 0);
+  signal stage4InputRe,stage4InputIm : std_logic_vector(11 downto 0);
+  signal stage5InputRe,stage5InputIm : std_logic_vector(11 downto 0);
+  signal stage6InputRe,stage6InputIm : std_logic_vector(11 downto 0);
+  signal stage7InputRe,stage7InputIm : std_logic_vector(11 downto 0);
+  signal stage8InputRe,stage8InputIm : std_logic_vector(11 downto 0);
+  signal stage9InputRe,stage9InputIm : std_logic_vector(11 downto 0);
+  signal stage10InputRe,stage10InputIm : std_logic_vector(11 downto 0);
 
-component FIFO
-  generic (
-        constant ROW  : natural := 8; -- number of words
-        constant COL  : natural := 4;  -- wordlength
-        constant NOFW : natural := 3
-        ); -- 2^NOFW = Number of words in registerfile
-  port (
-        clk     : in std_logic;
-        rst     : in std_logic;
-        writeEn : in std_logic;
-        readEn  : in std_logic;
-        fifoIn  : in std_logic_vector(COL-1 downto 0);
-        empty   : out std_logic;
-        full    : out std_logic;
-        fifoOut : out std_logic_vector(COL-1 downto 0)
-        );
-end component;
-
-signal n1, n2 : signed( 11 downto 0);
-signal sumOut,subOut :  signed( 11 downto 0);
-signal multInRe, multInIm : signed( 11 downto 0);
-signal coeffRe, coeffIm : signed( 11 downto 0);
-signal multOutRe, multOutIm : signed( 12 downto 0);
-
---FIFO definitions
-constant ROW  : natural := 8; -- number of words
-constant COL  : natural := 4;  -- wordlength
-constant NOFW : natural := 3;
-
-signal writeEn : std_logic;
-signal readEn  : std_logic;
-signal fifoIn  : std_logic_vector(COL-1 downto 0);
-signal empty   : std_logic;
-signal full    : std_logic;
-signal fifoOut : std_logic_vector(COL-1 downto 0);
-
+  signal readAdd1 : std_logic_vector(9 downto 0);
+    
 begin
 
-
-myButterfly_Inst : myButterfly
-    generic map ( 
-            w1 => 12
-            ) 
+stage_1 : stage1
     port map(
-            n1 => n1,
-            n2 => n2,
-            sumOut => sumOut,
-            subOut => subOut
-            );
+            rst => rst,
+            clk => clk,
+            T1 => T1,
+            S1 => S1,
+            --readAdd => readAdd1,
+            stage1InputRe => externalInputRe,
+            stage1InputIm => externalInputIm,
+            stage1OutputRe => stage2InputRe,
+            stage1OutputIm => stage2InputIm);
 
-complexMult_Inst : complexMult
-    generic map ( 
-            w1 => 12,
-            w2 => 13
-            )
-    port map(
-            clk     => clk,
-            rst     => rst,
-            multInRe  => multInRe,
-            multInIm  => multInIm,
-            coeffRe   => coeffRe,
-            coeffIm   => coeffIm,
-            multOutRe => multOutRe,
-            multOutIm => multOutIm
-            );
 
-  FIFO_Inst : FIFO
-    generic map ( 
-            ROW => ROW,
-            COL => COL,
-            NOFW => NOFW
-            )
-    port map(  
-            clk     => clk,
-            rst     => rst,
-            writeEn => writeEn,
-            readEn  => readEn,
-            fifoIn  => fifoIn,
-            empty   => empty,
-            full    => full,
-            fifoOut => fifoOut
-            );     
 end Behavioral;
