@@ -21,7 +21,7 @@ MATLAB_Code folder includes files to verify the results obtained by simulations
 
 Instructions to build and test project
 
-Step 1: Go to "" folder for Vivado files of the project
+Step 1: Go to "Hardware/sources" path for Vivado files of the project
 
 Step 2: Run Simulations
 
