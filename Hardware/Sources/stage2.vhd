@@ -2,29 +2,26 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity stage1 is
+entity stage2 is
     generic(        
-      constant w2   : natural;-- := 13; -- wordlength output
-      constant COL  : natural;-- := 12;  -- wordlength input current stage = wordlength output previous stage 
-      constant ROW  : natural;-- := 512; -- number of words
-      constant NOFW : natural);-- := 9);  -- 2^NOFW = Number of words in registerfile
+        constant w2   : natural; -- wordlength output
+        constant COL  : natural;  -- wordlength input current stage = wordlength output previous stage 
+        constant ROW  : natural; -- number of words
+        constant NOFW : natural);  -- 2^NOFW = Number of words in registerfile
     Port (
          rst : in STD_LOGIC;
          clk : in STD_LOGIC;
-         T1  : in STD_LOGIC;
-         S1  : in STD_LOGIC;
-         --readAdd : in std_logic_vector(9 downto 0);
+         T  : in STD_LOGIC;
+         S  : in STD_LOGIC;
          clkCounter : in unsigned (14 downto 0);
-         stage1InputRe : in std_logic_vector( COL-1 downto 0);
-         stage1InputIm : in std_logic_vector( COL-1 downto 0);
-         stage1OutputRe : out std_logic_vector( w2-1 downto 0);
-         stage1OutputIm : out std_logic_vector( w2-1 downto 0)
+         stageInputRe : in std_logic_vector(COL-1 downto 0);
+         stageInputIm : in std_logic_vector(COL-1 downto 0);
+         stageOutputRe : out std_logic_vector(w2-1 downto 0);
+         stageOutputIm : out std_logic_vector(w2-1 downto 0)
          );
-end stage1;
+end stage2;
 
-architecture Behavioral of stage1 is
-  
-  --constant addressMax : natural := 256;  --number of address in Register file 
+architecture Behavioral of stage2 is
   
 component myButterfly
     generic(
@@ -38,7 +35,7 @@ component myButterfly
          );
 end component;
 
-component complexMult1
+component complexMult2
     generic(
             w1 : integer;
             w2 : integer
@@ -73,23 +70,20 @@ component FIFO
         );
 end component;
 
-  component registerfilecoe
+  component registerfilecoe2
     generic(
           constant ROW : natural; -- number of words
-          --constant COL : natural; -- wordlength
           constant NOFW : natural); -- 2^NOFW = Number of words in registerfile
     port (
-          readAdd : in std_logic_vector( (NOFW-1) downto 0);
+          readAdd : in std_logic_vector( NOFW-1 downto 0);
           dataOut1 : out std_logic_vector(11 downto 0);
           dataOut2 : out std_logic_vector(11 downto 0));
   end component;
 
-
---signal n1, n2 : std_logic_vector( 11 downto 0);
 signal sumOutRe, subOutRe, sumOutIm, subOutIm :  std_logic_vector( COL-1 downto 0);
-signal multInRe, multInIm : std_logic_vector( (COL-1) downto 0);
+signal multInRe, multInIm : std_logic_vector( COL-1 downto 0);
 signal coeffRe, coeffIm : std_logic_vector( 11 downto 0);
---signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
+signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
 
 signal writeEn : std_logic;
 signal readEn  : std_logic;
@@ -100,12 +94,12 @@ signal fifoOutRe, fifoOutIm : std_logic_vector(COL-1 downto 0);
 
   --Control mechanism for Register File
 type FSM_State is (coeffIdle, coeff1, coeff2, coeff3, coeff4, coeff5);
-  
-signal stateReg, stateNext : FSM_State; 
-signal addressReg, addressNext : unsigned((NOFW-1) downto 0);
+
+signal stateReg, stateNext : FSM_State;
+signal addressReg, addressNext : unsigned( NOFW-1 downto 0);
 signal regFileCoeffIm, regFileCoeffRe : std_logic_vector(11 downto 0);
 
-signal counter2048Reg, counter2048Next : unsigned (NOFW downto 0);
+signal counter2048Reg, counter2048Next : unsigned ( NOFW downto 0);
 
 begin
 
@@ -124,40 +118,40 @@ process(clk, rst)
     end if;
 end process;
 
-process(T1, stage1inputRe, stage1inputIm, subOutRe, subOutIm)
-begin 
-    if (T1 = '1') then
-        fifoInRe <= stage1inputRe;
-        fifoInIm <= stage1inputIm;
-    else 
-        fifoInRe <= subOutRe;    
-        fifoInIm <= subOutIm;  
-    end if; 
+process(T, stageinputRe, stageinputIm, subOutRe, subOutIm)
+begin
+    if (T = '1') then
+        fifoInRe <= stageinputRe;
+        fifoInIm <= stageinputIm;
+    else
+        fifoInRe <= subOutRe;
+        fifoInIm <= subOutIm;
+    end if;
 end process;
 
-myButterfly_Re_Inst : myButterfly
+myButterfly2_Re_Inst : myButterfly
     generic map (
             w1 => COL
             )
     port map(
             n1 => fifoOutRe,
-            n2 => stage1InputRe,
+            n2 => stageInputRe,
             sumOut => sumOutRe,
             subOut => subOutRe
             );
             
-myButterfly_Im_Inst : myButterfly
+myButterfly2_Im_Inst : myButterfly
     generic map (
             w1 => COL
             )
     port map(
             n1 => fifoOutIm,
-            n2 => stage1InputIm,
+            n2 => stageInputIm,
             sumOut => sumOutIm,
             subOut => subOutIm
             );
 
-  FIFO_Re_Inst : FIFO
+  FIFO2_Re_Inst : FIFO
     generic map (
             ROW => ROW,
             COL => COL,
@@ -174,7 +168,7 @@ myButterfly_Im_Inst : myButterfly
             fifoOut => fifoOutRe
             );
             
-  FIFO_Im_Inst : FIFO
+  FIFO2_Im_Inst : FIFO
     generic map (
             ROW => ROW,
             COL => COL,
@@ -191,27 +185,55 @@ myButterfly_Im_Inst : myButterfly
             fifoOut => fifoOutIm
             ); 
 
-readEn <= '1' when clkCounter > "000010000000000" else '0'; --01111111111
+complexMult2_Inst : complexMult2
+    generic map (
+            w1 => COL,
+            w2 => w2
+            )
+    port map(
+            clk     => clk,
+            rst     => rst,
+            multInRe  => multInRe,
+            multInIm  => multInIm,
+            coeffRe   => coeffRe,
+            coeffIm   => coeffIm,
+            multOutRe => stageOutputRe,
+            multOutIm => stageOutputIm
+            );      
 
-process(S1, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
-begin 
-    if (S1 = '0') then 
+ Coeregister2 : registerfilecoe2
+   generic map (
+           ROW => ROW,
+           NOFW => NOFW
+           )
+   port map(
+           readAdd => std_logic_vector(addressReg),
+           dataOut1 => regFileCoeffRe,
+           dataOut2 => regFileCoeffIm
+           );
+
+--clk_counter_out
+readEn <= '1' when clkCounter > "0010000000000" else '0'; --01111111111
+
+process(S, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
+begin
+    if (S = '0') then
        multInRe <= fifoOutRe;
        multInIm <= fifoOutIm;
-    else 
+    else
        multInRe <= sumOutRe;
-       multInIm <= sumOutIm; 
+       multInIm <= sumOutIm;
     end if;
 end process;
 
   -- next state logic
-process(stateReg, addressReg, T1, clkCounter, counter2048reg)
+process(stateReg, addressReg, T, clkCounter, counter2048reg)
   begin
     -- default
     stateNext <= stateReg;
     case (stateReg) is
       when coeffIdle =>
-          if (clkCounter = "000010000000000") then 
+          if (clkCounter = "0010000000000") then 
             stateNext <= coeff1;
           end if;
       when coeff1 =>
@@ -248,8 +270,8 @@ process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter2048reg)
     case (stateReg) is
       when coeffIdle =>
       when coeff1 =>
-        coeffRe <= "010000000000";
-        coeffIm <= "000000000000";
+        coeffRe <= "000000000001";
+        coeffIm <= "000000000001";
         counter2048next  <= counter2048reg + 1;
       when coeff2 =>
         coeffRe <= regFileCoeffRe;
@@ -273,32 +295,5 @@ process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter2048reg)
         counter2048next  <= counter2048reg + 1;
      end case;
   end process;   
-                             
-complexMult_Inst : complexMult1
-    generic map (
-            w1 => COL,
-            w2 => w2
-            )
-    port map(
-            clk     => clk,
-            rst     => rst,
-            multInRe  => multInRe,
-            multInIm  => multInIm,
-            coeffRe   => coeffRe,
-            coeffIm   => coeffIm,
-            multOutRe => stage1OutputRe,
-            multOutIm => stage1OutputIm
-            );      
-
- Coeregister : registerfilecoe
-   generic map (
-           ROW => ROW,
-           NOFW => NOFW
-           )
-   port map(
-           readAdd => std_logic_vector(addressReg),
-           dataOut1 => regFileCoeffRe,
-           dataOut2 => regFileCoeffIm
-           );
 
 end Behavioral;

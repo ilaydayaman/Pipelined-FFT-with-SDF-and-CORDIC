@@ -2,34 +2,34 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity complexMult1 is
+entity complexMult3 is
     Generic ( w1 : integer;
               w2 : integer);
-    Port ( 
+    Port (
            clk       : in  std_logic;
-           rst       : in  std_logic; 
+           rst       : in  std_logic;
            multInRe  : in std_logic_vector( (w1-1) downto 0);
            multInIm  : in std_logic_vector( (w1-1) downto 0);
-           coeffRe   : in std_logic_vector( (w1-1) downto 0);
-           coeffIm   : in std_logic_vector( (w1-1) downto 0);
+           coeffRe   : in std_logic_vector( (11) downto 0);
+           coeffIm   : in std_logic_vector( (11) downto 0);
            multOutRe : out std_logic_vector( (w2-1) downto 0);
            multOutIm : out std_logic_vector( (w2-1) downto 0));
-end complexMult1;
+end complexMult3;
 
-architecture Behavioral of complexMult1 is
+architecture Behavioral of complexMult3 is
 
---Input registers for critical path 
+--Input registers for critical path
 signal multInReNext, multInImNext : signed( (w1-1) downto 0);
 signal multInReReg , multInImReg  : signed( (w1-1) downto 0);
-signal coeffReNext, coeffImNext   : signed( (w1-1) downto 0);
-signal coeffReReg, coeffImReg     : signed( (w1-1) downto 0);
+signal coeffReNext, coeffImNext   : signed( 11 downto 0);
+signal coeffReReg, coeffImReg     : signed( 11 downto 0);
 
-signal multOutRe1Reg, multOutRe2Reg, multOutIm1Reg, multOutIm2Reg : signed( (2*w1-1) downto 0);
-signal multOutRe1Next, multOutRe2Next, multOutIm1Next, multOutIm2Next : signed( (2*w1-1) downto 0);
+signal multOutRe1Reg, multOutRe2Reg, multOutIm1Reg, multOutIm2Reg : signed( (2*w1-2) downto 0);
+signal multOutRe1Next, multOutRe2Next, multOutIm1Next, multOutIm2Next : signed( (2*w1-2) downto 0);
 
---Output registers for critical path 
-signal multOutReNext, multOutImNext : signed( (2*w1-1) downto 0);
-signal multOutReReg, multOutImReg : signed( (2*w1-1) downto 0);
+--Output registers for critical path
+signal multOutReNext, multOutImNext : signed( (2*w1-2) downto 0);
+signal multOutReReg, multOutImReg : signed( (2*w1-2) downto 0);
 
 begin
 
@@ -75,8 +75,8 @@ multOutImNext <= multOutIm1Reg + multOutIm2Reg;
 
 process(multOutReReg, multOutImReg)
     begin
-        multOutRe <= std_logic_vector(multOutReReg(2*w1-1) & multOutReReg((2*w1-3) downto (w2-1)));
-        multOutIm <= std_logic_vector(multOutImReg(2*w1-1) & multOutImReg((2*w1-3) downto (w2-1)));
+        multOutRe <= std_logic_vector(multOutReReg(2*w1-2) & multOutReReg((2*w1-4) downto (2*w1-2-w2)));
+        multOutIm <= std_logic_vector(multOutImReg(2*w1-2) & multOutImReg((2*w1-4) downto (2*w1-2-w2)));
     end process;
 
 end Behavioral;

@@ -40,7 +40,7 @@ begin
   end process;
 
   -- next state logic write and read pointers
-  writePtrNext <= writePtrReg + 1 when (writeEn = '1') and (statFull = '0') else writePtrReg;
+  writePtrNext <= writePtrReg + 1 when (writeEn = '1') else writePtrReg; --and (statFull = '0') 
   readPtrNext <= readPtrReg + 1 when (readEn = '1') and (statEmpty = '0') else readPtrReg;
 
   -- status logic for full/empty

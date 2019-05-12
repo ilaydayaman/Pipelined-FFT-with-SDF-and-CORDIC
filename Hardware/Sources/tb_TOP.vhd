@@ -17,9 +17,10 @@ ARCHITECTURE behavior OF tb_TOP IS
          rst : IN  std_logic;
          clk : IN  std_logic;
          modeSelectFftIfft : in STD_LOGIC;
-         coefficients : IN  std_logic_vector(11 downto 0);
+         --coefficients : IN  std_logic_vector(11 downto 0);
          externalInputRe  : in std_logic_vector(11 downto 0);
          externalInputIm  : in std_logic_vector(11 downto 0);
+         validOutput	  : out STD_LOGIC;
          externalOutputRe : out std_logic_vector(11 downto 0);
          externalOutputIm : out std_logic_vector(11 downto 0)
         );
@@ -30,11 +31,12 @@ ARCHITECTURE behavior OF tb_TOP IS
    signal rst : std_logic := '0';
    signal clk : std_logic := '0';
    signal modeSelectFftIfft: std_logic := '0';
-   signal coefficients : std_logic_vector(11 downto 0) := (others => '0');
+   --signal coefficients : std_logic_vector(11 downto 0) := (others => '0');
    signal externalInputRe : std_logic_vector(11 downto 0) := (others => '0');
    signal externalInputIm : std_logic_vector(11 downto 0) := (others => '0');
    
  	--Outputs
+   signal validOutput      : std_logic := '0';
    signal externalOutputRe : std_logic_vector(11 downto 0);
    signal externalOutputIm : std_logic_vector(11 downto 0);
 
@@ -44,6 +46,8 @@ ARCHITECTURE behavior OF tb_TOP IS
     
    -- Clock period definitions
    constant clk_period : time := 10 ns;
+   
+   signal clk_counter : integer;
  
 BEGIN
  
@@ -52,9 +56,10 @@ BEGIN
           rst => rst,
           clk => clk,
           modeSelectFftIfft => modeSelectFftIfft,
-          coefficients      => coefficients,
+          --coefficients      => coefficients,
           externalInputRe   => externalInputRe,
           externalInputIm   => externalInputIm,
+          validOutput	    => validOutput,
           externalOutputRe  => externalOutputRe,
           externalOutputIm  => externalOutputIm
         );
@@ -68,6 +73,18 @@ BEGIN
 		wait for clk_period/2;
    end process;
  
+   -- Test counter
+   tb_counter : process(rst,clk)
+    variable counter : integer;
+   begin
+        if (rst = '1') then
+            counter := 0;
+        elsif rising_edge(clk) then
+            counter := counter + 1;
+        end if;
+        clk_counter <= counter;
+   end process;
+   
 
    -- Stimulus process
    stim_proc: process
@@ -85,9 +102,10 @@ BEGIN
       --wait for clk_period*10;
 
       -- insert stimulus here 
-      -- open file for reading
-      file_open(file_INPUT_X_Re, "C:/Users/ilayd/Documents/ders/etin35/FFT/matlab_codes/fft_inputs_binary_real.txt", read_mode);
-      file_open(file_INPUT_X_Im, "C:/Users/ilayd/Documents/ders/etin35/FFT/matlab_codes/fft_inputs_binary_imaginary.txt", read_mode);
+      -- open file for reading C:\Users\ilayd\Documents\ders\etin35\FFT\inputs
+      file_open(file_INPUT_X_Re, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_real.txt", read_mode);
+      file_open(file_INPUT_X_Im, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_imaginary.txt", read_mode);
+  
             
       loop
           

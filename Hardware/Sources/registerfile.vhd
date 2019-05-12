@@ -54,7 +54,7 @@ begin
     end loop;
 
     -- data written to registerfile if writeEn is high and its not full
-    if (writeEn = '1') and (full = '0') then
+    if (writeEn = '1') then --and (full = '0') 
         regfileNext(to_integer(writePtr)) <= dataIn;
     end if;
   end process;

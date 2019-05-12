@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;   
 
 entity myButterfly is
-    generic ( w1 : integer := 12);
+    generic ( w1 : integer);
     Port ( n1 : in std_logic_vector( (w1-1) downto 0);
            n2 : in std_logic_vector( (w1-1) downto 0);
            sumOut : out std_logic_vector( (w1-1) downto 0);

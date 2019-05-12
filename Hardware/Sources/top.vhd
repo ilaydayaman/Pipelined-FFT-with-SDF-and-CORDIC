@@ -6,9 +6,10 @@ entity top is
     Port ( rst : in STD_LOGIC;
            clk : in STD_LOGIC;
            modeSelectFftIfft : in STD_LOGIC;
-           coefficients      : in std_logic_vector(11 downto 0);
+           --coefficients      : in std_logic_vector(11 downto 0);
            externalInputRe   : in std_logic_vector(11 downto 0);
            externalInputIm   : in std_logic_vector(11 downto 0);
+	       validOutput	     : out STD_LOGIC;
            externalOutputRe  : out std_logic_vector(11 downto 0);
            externalOutputIm  : out std_logic_vector(11 downto 0));
 end top;
@@ -18,30 +19,32 @@ architecture Behavioral of top is
 component Control_Unit is
     --generic ( STATE : integer := 4 );
     port (
-        clk : in STD_LOGIC;
-        rst : in STD_LOGIC;   
-        T1  : out STD_LOGIC;
-        T2  : out STD_LOGIC;
-        T3  : out STD_LOGIC;
-        T4  : out STD_LOGIC;
-        T5  : out STD_LOGIC;
-        T6  : out STD_LOGIC;
-        T7  : out STD_LOGIC;
-        T8  : out STD_LOGIC;
-        T9  : out STD_LOGIC;
-        T10 : out STD_LOGIC;
-        T11 : out STD_LOGIC;
-        S1  : out STD_LOGIC;
-        S2  : out STD_LOGIC;
-        S3  : out STD_LOGIC;
-        S4  : out STD_LOGIC;
-        S5  : out STD_LOGIC;
-        S6  : out STD_LOGIC;
-        S7  : out STD_LOGIC;
-        S8  : out STD_LOGIC;
-        S9  : out STD_LOGIC;
-        S10 : out STD_LOGIC;
-        S11 : out STD_LOGIC
+        clk    : in STD_LOGIC;
+        rst    : in STD_LOGIC; 
+        readEn : in STD_LOGIC; 
+        T1     : out STD_LOGIC;
+        T2     : out STD_LOGIC;
+        T3     : out STD_LOGIC;
+        T4     : out STD_LOGIC;
+        T5     : out STD_LOGIC;
+        T6     : out STD_LOGIC;
+        T7     : out STD_LOGIC;
+        T8     : out STD_LOGIC;
+        T9     : out STD_LOGIC;
+        T10    : out STD_LOGIC;
+        T11    : out STD_LOGIC;
+        S1     : out STD_LOGIC;
+        S2     : out STD_LOGIC;
+        S3     : out STD_LOGIC;
+        S4     : out STD_LOGIC;
+        S5     : out STD_LOGIC;
+        S6     : out STD_LOGIC;
+        S7     : out STD_LOGIC;
+        S8     : out STD_LOGIC;
+        S9     : out STD_LOGIC;
+        S10    : out STD_LOGIC;
+        S11    : out STD_LOGIC;
+        clkCounter : out unsigned (14 downto 0)
       );
   end component;
 
@@ -72,8 +75,10 @@ component alu_mem is
       S9  : in STD_LOGIC;
       S10 : in STD_LOGIC;
       S11 : in STD_LOGIC;
+      clkCounter : in unsigned (14 downto 0);
       externalInputRe  : in std_logic_vector(11 downto 0);
       externalInputIm  : in std_logic_vector(11 downto 0);
+      readEn : out STD_LOGIC; 
       externalOutputRe : out std_logic_vector(11 downto 0);
       externalOutputIm : out std_logic_vector(11 downto 0)
       );
@@ -82,6 +87,8 @@ component alu_mem is
 -- signal declerations
 signal T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 : std_logic;
 signal S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11 : std_logic;
+signal clkCounter : unsigned (14 downto 0);
+signal readEn : std_logic;
 
 begin
 
@@ -111,8 +118,12 @@ ControlUnitInst : Control_Unit
       S8  => S8,
       S9  => S9,
       S10 => S10,
-      S11 => S11
+      S11 => S11,
+      readEn => readEn,
+      clkCounter     => clkCounter
       );
+      
+validOutput <= clkCounter(14);
 
 ALU_MEM_UnitInst : alu_mem
     port map(
@@ -140,8 +151,10 @@ ALU_MEM_UnitInst : alu_mem
       S9             => S9,
       S10            => S10,
       S11            => S11,
+      clkCounter     => clkCounter, 
       externalInputRe  => externalInputRe,
-      externalInputIm  => externalInputIm,
+      externalInputIm  => externalInputIm,      
+      readEn           => readEn,
       externalOutputRe => externalOutputRe,
       externalOutputIm => externalOutputIm
       );

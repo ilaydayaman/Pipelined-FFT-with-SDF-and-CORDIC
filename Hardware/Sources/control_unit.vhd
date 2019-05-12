@@ -6,36 +6,39 @@ use IEEE.NUMERIC_STD.ALL;
 entity control_unit is
     --generic ( STATE : integer := 4 );
     Port ( 
-           clk : in STD_LOGIC;
-           rst : in STD_LOGIC;   
-           T1  : out STD_LOGIC;
-           T2  : out STD_LOGIC;
-           T3  : out STD_LOGIC;
-           T4  : out STD_LOGIC;
-           T5  : out STD_LOGIC;
-           T6  : out STD_LOGIC;
-           T7  : out STD_LOGIC;
-           T8  : out STD_LOGIC;
-           T9  : out STD_LOGIC;
-           T10 : out STD_LOGIC;
-           T11 : out STD_LOGIC;
-           S1  : out STD_LOGIC;
-           S2  : out STD_LOGIC;
-           S3  : out STD_LOGIC;
-           S4  : out STD_LOGIC;
-           S5  : out STD_LOGIC;
-           S6  : out STD_LOGIC;
-           S7  : out STD_LOGIC;
-           S8  : out STD_LOGIC;
-           S9  : out STD_LOGIC;
-           S10 : out STD_LOGIC;
-           S11 : out STD_LOGIC
+           clk    : in STD_LOGIC;
+           rst    : in STD_LOGIC; 
+           readEn : in STD_LOGIC; 
+           T1     : out STD_LOGIC;
+           T2     : out STD_LOGIC;
+           T3     : out STD_LOGIC;
+           T4     : out STD_LOGIC;
+           T5     : out STD_LOGIC;
+           T6     : out STD_LOGIC;
+           T7     : out STD_LOGIC;
+           T8     : out STD_LOGIC;
+           T9     : out STD_LOGIC;
+           T10    : out STD_LOGIC;
+           T11    : out STD_LOGIC;
+           S1     : out STD_LOGIC;
+           S2     : out STD_LOGIC;
+           S3     : out STD_LOGIC;
+           S4     : out STD_LOGIC;
+           S5     : out STD_LOGIC;
+           S6     : out STD_LOGIC;
+           S7     : out STD_LOGIC;
+           S8     : out STD_LOGIC;
+           S9     : out STD_LOGIC;
+           S10    : out STD_LOGIC;
+           S11    : out STD_LOGIC;
+           clkCounter : out unsigned (14 downto 0)
            );
 end control_unit;
 
 architecture Behavioral of control_unit is
 
-signal counter1024reg, counter1024next : unsigned (10 downto 0);
+signal clkCounterReg, clkCounterNext    : unsigned (14 downto 0);
+signal counter1024reg, counter1024next  : unsigned (10 downto 0);
 signal counter512reg, counter512next    : unsigned (9 downto 0);
 signal counter256reg, counter256next    : unsigned (8 downto 0);
 signal counter128reg, counter128next    : unsigned (7 downto 0);
@@ -55,6 +58,7 @@ begin
     process (clk, rst)
     begin
         if(rst = '1') then
+          clkCounterReg   <= (others =>'0');
           counter1024reg  <= (others => '0');  
           counter512reg   <= (others => '0');
           counter256reg   <= (others => '0');
@@ -88,6 +92,7 @@ begin
           S10reg          <=  '0';
           S11reg          <=  '0';
         elsif(clk'event and clk = '1') then
+          clkCounterReg   <= clkCounterNext;
           counter1024reg  <= counter1024next;  
           counter512reg   <= counter512next;
           counter256reg   <= counter256next;
@@ -123,9 +128,21 @@ begin
         end if;
     end process;
 
+    clk_counter_next : process(rst,clkCounterReg) --,readEn
+    begin
+        if (rst = '0') then --and (readEn = '0') 
+            clkCounterNext <= clkCounterReg + 1;
+        else
+            clkCounterNext <= clkCounterReg;
+        end if;
+    end process;
+
+    clkCounter <= clkCounterReg;
+
     process(T1reg, T2reg, T3reg, T4reg, T5reg, T6reg, T7reg, T8reg, T9reg, T10reg, T11reg, 
             S1reg, S2reg, S3reg, S4reg, S5reg, S6reg, S7reg, S8reg, S9reg, S10reg, S11reg,
-            counter1024reg, counter512reg, counter256reg, counter128reg, counter64reg, counter32reg, counter16reg, counter8reg, counter4reg, counter2reg)
+            counter1024reg, counter512reg, counter256reg, counter128reg, counter64reg, 
+            counter32reg, counter16reg, counter8reg, counter4reg, counter2reg, rst)
     begin 
     --default values
         T1next  <=  T1reg;
@@ -148,90 +165,103 @@ begin
         S8next  <=  S8reg;
         S9next  <=  S9reg;
         S10next <=  S10reg;
-        
-        if(counter1024reg < 1024) then 
-            counter1024next <= counter1024reg +1;
-        else 
-            counter1024next <= (others => '0');
-            T1next  <=  not(T1reg);
-            S1next  <=  not(S1reg);
-        end if;
-        
-        if(counter512reg < 512) then 
-            counter512next <= counter512reg +1;
-        else 
-            counter512next <= (others => '0');
-            T2next  <=  not(T2reg);
-            S2next  <=  not(S2reg);
-        end if;
-        
-        if(counter256reg < 256) then 
-            counter256next <= counter256reg +1;
-        else 
-            counter256next <= (others => '0');
-            T3next  <=  not(T3reg);
-            S3next  <=  not(S3reg);
-        end if;
-        
-        if(counter128reg < 128) then 
-            counter128next <= counter128reg +1;
-        else 
-            counter128next <= (others => '0');
-            T4next  <=  not(T4reg);
-            S4next  <=  not(S4reg);
-        end if;
-        
-        if(counter64reg < 64) then 
-            counter64next <= counter64reg +1;
-        else 
-            counter64next <= (others => '0');
-            T5next  <=  not(T5reg);
-            S5next  <=  not(S5reg);
-        end if;
-        
-        if(counter32reg < 32) then 
-            counter32next <= counter32reg +1;
-        else 
-            counter32next <= (others => '0');
-            T6next  <=  not(T6reg);
-            S6next  <=  not(S6reg);
-        end if;
-        
-        if(counter16reg < 16) then 
-            counter16next <= counter16reg +1;
-        else 
-            counter16next <= (others => '0');
-            T7next  <=  not(T7reg);
-            S7next  <=  not(S7reg);
-        end if;
-        
-        if(counter8reg < 8) then 
-            counter8next <= counter8reg +1;
-        else 
-            counter8next <= (others => '0');
-            T8next  <=  not(T8reg);
-            S8next  <=  not(S8reg);
-        end if;
-        
-        if(counter4reg < 4) then 
-            counter4next <= counter4reg +1;
-        else 
-            counter4next <= (others => '0');
-            T9next  <=  not(T9reg);
-            S9next  <=  not(S9reg);
-        end if;
-        
-        if(counter2reg < 2) then 
-            counter2next <= counter2reg +1;
-        else 
-            counter2next <= (others => '0');
-            T10next  <=  not(T10reg);
-            S10next  <=  not(S10reg);
-        end if;
-    
-        S11next <=  not(S11reg);
-        T11next <=  not(T11reg);
-        
+        counter1024next <= counter1024reg;
+        counter512next  <= counter512reg;
+        counter256next  <= counter256reg;
+        counter128next  <= counter128reg;
+        counter64next   <= counter64reg;
+        counter32next   <= counter32reg;
+        counter16next   <= counter16reg;
+        counter8next    <= counter8reg;
+        counter4next    <= counter4reg;
+        counter2next    <= counter2reg;
+                
+        if( rst = '0') then 
+            if(counter1024reg < 1023) then 
+                counter1024next <= counter1024reg +1;
+            else 
+                counter1024next <= (others => '0');
+                T1next  <=  not(T1reg);
+                S1next  <=  not(S1reg);
+            end if;
+            
+            if(counter512reg < 511) then 
+                counter512next <= counter512reg +1;
+            else 
+                counter512next <= (others => '0');
+                T2next  <=  not(T2reg);
+                S2next  <=  not(S2reg);
+            end if;
+            
+            if(counter256reg < 255) then 
+                counter256next <= counter256reg +1;
+            else 
+                counter256next <= (others => '0');
+                T3next  <=  not(T3reg);
+                S3next  <=  not(S3reg);
+            end if;
+            
+            if(counter128reg < 127) then 
+                counter128next <= counter128reg +1;
+            else 
+                counter128next <= (others => '0');
+                T4next  <=  not(T4reg);
+                S4next  <=  not(S4reg);
+            end if;
+            
+            if(counter64reg < 63) then 
+                counter64next <= counter64reg +1;
+            else 
+                counter64next <= (others => '0');
+                T5next  <=  not(T5reg);
+                S5next  <=  not(S5reg);
+            end if;
+            
+            if(counter32reg < 31) then 
+                counter32next <= counter32reg +1;
+            else 
+                counter32next <= (others => '0');
+                T6next  <=  not(T6reg);
+                S6next  <=  not(S6reg);
+            end if;
+            
+            if(counter16reg < 15) then 
+                counter16next <= counter16reg +1;
+            else 
+                counter16next <= (others => '0');
+                T7next  <=  not(T7reg);
+                S7next  <=  not(S7reg);
+            end if;
+            
+            if(counter8reg < 7) then 
+                counter8next <= counter8reg +1;
+            else 
+                counter8next <= (others => '0');
+                T8next  <=  not(T8reg);
+                S8next  <=  not(S8reg);
+            end if;
+            
+            if(counter4reg < 3) then 
+                counter4next <= counter4reg +1;
+            else 
+                counter4next <= (others => '0');
+                T9next  <=  not(T9reg);
+                S9next  <=  not(S9reg);
+            end if;
+            
+            if(counter2reg < 1) then 
+                counter2next <= counter2reg +1;
+            else 
+                counter2next <= (others => '0');
+                T10next  <=  not(T10reg);
+                S10next  <=  not(S10reg);
+            end if;
+                        
+         end if; 
+         
+         S11next <=  not(S11reg);
+         T11next <=  not(T11reg);
+         
     end process;
     --
     T1  <= T1reg;  S1  <= S1reg;
