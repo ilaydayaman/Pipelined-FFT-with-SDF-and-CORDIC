@@ -29,8 +29,7 @@ entity alu_mem is
          S9  : in STD_LOGIC;
          S10 : in STD_LOGIC;
          S11 : in STD_LOGIC;
-         --readEn : out STD_LOGIC;
-         modeSelectFftIfft : in STD_LOGIC;
+         readEn : out STD_LOGIC;
          clkCounter : in unsigned (14 downto 0);
          externalInputRe  : in std_logic_vector(11 downto 0);
          externalInputIm  : in std_logic_vector(11 downto 0);
@@ -225,7 +224,6 @@ architecture Behavioral of alu_mem is
        T  : in STD_LOGIC;
        S  : in STD_LOGIC;
        clkCounter : in unsigned (14 downto 0);
-       --readEnOut : out std_logic;
        stageInputRe : in std_logic_vector(COL-1 downto 0);
        stageInputIm : in std_logic_vector(COL-1 downto 0);
        stageOutputRe : out std_logic_vector(w2-1 downto 0);
@@ -252,7 +250,6 @@ architecture Behavioral of alu_mem is
        );
   end component;
 
-  signal stage1InputRe,stage1InputIm   : std_logic_vector(11 downto 0);
   signal stage2InputRe,stage2InputIm   : std_logic_vector(11 downto 0);
   signal stage3InputRe,stage3InputIm   : std_logic_vector(12 downto 0);
   signal stage4InputRe,stage4InputIm   : std_logic_vector(13 downto 0);
@@ -264,28 +261,10 @@ architecture Behavioral of alu_mem is
   signal stage10InputRe,stage10InputIm : std_logic_vector(15 downto 0);
   signal stage11InputRe,stage11InputIm : std_logic_vector(15 downto 0);
 
-  signal stageOutputRe, stageOutputIm  : std_logic_vector(11 downto 0);
-  
   --signal readAdd1 : std_logic_vector(9 downto 0);
   --signal clkCounter : unsigned (10 downto 0);
 
 begin
-
-process (modeSelectFftIfft, externalInputIm, externalInputRe, stageOutputRe, stageOutputIm)
-begin 
-    if(modeSelectFftIfft = '0') then
-        stage1InputRe    <= externalInputRe;
-        stage1InputIm    <= externalInputIm;
-        ExternalOutputRe <= stageOutputRe;
-        ExternalOutputIm <= stageOutputIm;
-    else 
-        stage1InputRe    <= externalInputIm;
-        stage1InputIm    <= externalInputRe; 
-        ExternalOutputRe <= stageOutputIm;
-        ExternalOutputIm <= stageOutputRe;           
-    end if;
-end process;
-
 
 stage_1 : stage1
     generic map (
@@ -299,8 +278,8 @@ stage_1 : stage1
             T1 => T1,
             S1 => S1,
             clkCounter => clkCounter,
-            stage1InputRe => stage1InputRe,
-            stage1InputIm => stage1InputIm,
+            stage1InputRe => externalInputRe,
+            stage1InputIm => externalInputIm,
             stage1OutputRe => stage2InputRe,
             stage1OutputIm => stage2InputIm);
 
@@ -453,7 +432,6 @@ stage_10 : stage10
             T => T10,
             S => S10,
             clkCounter => clkCounter,
-            --readEnOut => readEn,
             stageInputRe => stage10InputRe,
             stageInputIm => stage10InputIm,
             stageOutputRe => stage11InputRe,
@@ -473,7 +451,7 @@ stage_11 : stage11
             clkCounter => clkCounter,
             stageInputRe => stage11InputRe,
             stageInputIm => stage11InputIm,
-            stageOutputRe => stageOutputRe,
-            stageOutputIm => stageOutputIm);
+            stageOutputRe => externalOutputRe,
+            stageOutputIm => externalOutputIm);
 
 end Behavioral;

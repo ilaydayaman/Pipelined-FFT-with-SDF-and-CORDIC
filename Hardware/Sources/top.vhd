@@ -21,7 +21,7 @@ component Control_Unit is
     port (
         clk    : in STD_LOGIC;
         rst    : in STD_LOGIC; 
-        readEn : in STD_LOGIC; 
+        --readEn : in STD_LOGIC; 
         T1     : out STD_LOGIC;
         T2     : out STD_LOGIC;
         T3     : out STD_LOGIC;
@@ -75,10 +75,11 @@ component alu_mem is
       S9  : in STD_LOGIC;
       S10 : in STD_LOGIC;
       S11 : in STD_LOGIC;
+      modeSelectFftIfft : in STD_LOGIC;
       clkCounter : in unsigned (14 downto 0);
       externalInputRe  : in std_logic_vector(11 downto 0);
       externalInputIm  : in std_logic_vector(11 downto 0);
-      readEn : out STD_LOGIC; 
+      --readEn : out STD_LOGIC; 
       externalOutputRe : out std_logic_vector(11 downto 0);
       externalOutputIm : out std_logic_vector(11 downto 0)
       );
@@ -88,9 +89,12 @@ component alu_mem is
 signal T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 : std_logic;
 signal S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11 : std_logic;
 signal clkCounter : unsigned (14 downto 0);
-signal readEn : std_logic;
+signal modeSelectFftIfftWire : std_logic;
+--signal readEn : std_logic;
 
 begin
+
+modeSelectFftIfftWire <= '0';
 
 ControlUnitInst : Control_Unit
     --generic map ( STATE => 4 )
@@ -119,11 +123,10 @@ ControlUnitInst : Control_Unit
       S9  => S9,
       S10 => S10,
       S11 => S11,
-      readEn => readEn,
+      --readEn => readEn,
       clkCounter     => clkCounter
       );
-      
-validOutput <= clkCounter(14);
+
 
 ALU_MEM_UnitInst : alu_mem
     port map(
@@ -151,12 +154,15 @@ ALU_MEM_UnitInst : alu_mem
       S9             => S9,
       S10            => S10,
       S11            => S11,
-      clkCounter     => clkCounter, 
+      clkCounter     => clkCounter,
+      modeSelectFftIfft=> modeSelectFftIfftWire,
       externalInputRe  => externalInputRe,
       externalInputIm  => externalInputIm,      
-      readEn           => readEn,
+      --readEn           => readEn,
       externalOutputRe => externalOutputRe,
       externalOutputIm => externalOutputIm
       );
+      
+    validOutput <= '1' when (clkCounter = 2078) else '0'; 
 
 end Behavioral;

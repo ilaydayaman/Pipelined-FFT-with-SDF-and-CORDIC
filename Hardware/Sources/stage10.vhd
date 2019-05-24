@@ -14,6 +14,7 @@ entity stage10 is
          T  : in STD_LOGIC;
          S  : in STD_LOGIC;
          clkCounter : in unsigned (14 downto 0);
+         --readEnOut : out std_logic;
          stageInputRe : in std_logic_vector(COL-1 downto 0);
          stageInputIm : in std_logic_vector(COL-1 downto 0);
          stageOutputRe : out std_logic_vector(w2-1 downto 0);
@@ -83,7 +84,6 @@ end component;
 signal sumOutRe, subOutRe, sumOutIm, subOutIm :  std_logic_vector( COL-1 downto 0);
 signal multInRe, multInIm : std_logic_vector( COL-1 downto 0);
 signal coeffRe, coeffIm : std_logic_vector( 11 downto 0);
---signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
 
 signal writeEn : std_logic;
 signal readEn  : std_logic;
@@ -210,10 +210,9 @@ complexMult10_Inst : complexMult10
            dataOut2 => regFileCoeffIm
            );
 
---clk_counter_out************************
-readEn  <= '1' when (unsigned(clkCounter) > 1540) else '0'; --******************************************************** change the clock cycle to input of the stage
-writeEn <= '1' when (unsigned(clkCounter) > 1028) else '0'; --*********************************************** 
-                                                            --should add this signal and remove it from upper process with registers
+--readEnOut <= readEn;
+readEn  <= '1' when (unsigned(clkCounter) >= 2074) else '0';
+writeEn <= '1' when unsigned(clkCounter)  >= 2072 else '0';
 
 process(S, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
 begin
@@ -233,7 +232,7 @@ process(stateReg, addressReg, T, clkCounter, counter4reg)
     stateNext <= stateReg;
     case (stateReg) is
       when coeffIdle =>
-          if (clkCounter = "0010000000000") then  --************************************
+          if (unsigned(clkCounter) = 2073) then
             stateNext <= coeff1;
           end if;
       when coeff1 =>
@@ -268,7 +267,7 @@ process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter4reg)
       when coeff2 =>
         coeffRe <= regFileCoeffRe;
         coeffIm <= regFileCoeffIm;
-        addressNext <= addressReg + 1;
+        --addressNext <= addressReg + 1;
         counter4next  <= counter4reg + 1;
 --      when coeff3 =>
 --        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
@@ -276,9 +275,11 @@ process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter4reg)
 --        addressNext <= addressReg - 1;
 --        counter4next  <= counter4reg + 1;
       when coeff4 =>
-        coeffRe <= regFileCoeffIm;
-        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
-        addressNext <= addressReg + 1;
+          coeffRe <= regFileCoeffIm;
+          coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+--        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+--        coeffIm <= regFileCoeffIm;
+        --addressNext <= addressReg + 1;
         counter4next  <= counter4reg + 1;
 --      when coeff5 =>
 --        coeffRe <= regFileCoeffRe;

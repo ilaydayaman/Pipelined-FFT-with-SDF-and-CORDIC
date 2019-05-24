@@ -550,5 +550,4 @@ begin
     regfileReg2(255) <= "110100101110";
     regfileReg2(256) <= "110100101100";
 
-
 end architecture;

@@ -13,7 +13,6 @@ entity stage1 is
          clk : in STD_LOGIC;
          T1  : in STD_LOGIC;
          S1  : in STD_LOGIC;
-         --readAdd : in std_logic_vector(9 downto 0);
          clkCounter : in unsigned (14 downto 0);
          stage1InputRe : in std_logic_vector( COL-1 downto 0);
          stage1InputIm : in std_logic_vector( COL-1 downto 0);
@@ -23,8 +22,6 @@ entity stage1 is
 end stage1;
 
 architecture Behavioral of stage1 is
-  
-  --constant addressMax : natural := 256;  --number of address in Register file 
   
 component myButterfly
     generic(
@@ -45,7 +42,7 @@ component complexMult1
             );
     port(
           clk       : in  std_logic;
-          rst       : in  std_logic; 
+          rst       : in  std_logic;
           multInRe  : in std_logic_vector( (w1-1) downto 0);
           multInIm  : in std_logic_vector( (w1-1) downto 0);
           coeffRe   : in std_logic_vector( 11 downto 0);
@@ -76,7 +73,6 @@ end component;
   component registerfilecoe
     generic(
           constant ROW : natural; -- number of words
-          --constant COL : natural; -- wordlength
           constant NOFW : natural); -- 2^NOFW = Number of words in registerfile
     port (
           readAdd : in std_logic_vector( (NOFW-1) downto 0);
@@ -84,12 +80,9 @@ end component;
           dataOut2 : out std_logic_vector(11 downto 0));
   end component;
 
-
---signal n1, n2 : std_logic_vector( 11 downto 0);
 signal sumOutRe, subOutRe, sumOutIm, subOutIm :  std_logic_vector( COL-1 downto 0);
 signal multInRe, multInIm : std_logic_vector( (COL-1) downto 0);
 signal coeffRe, coeffIm : std_logic_vector( 11 downto 0);
---signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
 
 signal writeEn : std_logic;
 signal readEn  : std_logic;
@@ -191,89 +184,6 @@ myButterfly_Im_Inst : myButterfly
             fifoOut => fifoOutIm
             ); 
 
-readEn <= '1' when clkCounter > "000010000000000" else '0'; --01111111111
-
-process(S1, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
-begin 
-    if (S1 = '0') then 
-       multInRe <= fifoOutRe;
-       multInIm <= fifoOutIm;
-    else 
-       multInRe <= sumOutRe;
-       multInIm <= sumOutIm; 
-    end if;
-end process;
-
-  -- next state logic
-process(stateReg, addressReg, T1, clkCounter, counter2048reg)
-  begin
-    -- default
-    stateNext <= stateReg;
-    case (stateReg) is
-      when coeffIdle =>
-          if (clkCounter = "000010000000000") then 
-            stateNext <= coeff1;
-          end if;
-      when coeff1 =>
-        if (counter2048reg = 1023) then
-          stateNext <= coeff2;
-        end if;
-      when coeff2 =>
-        if (counter2048reg = 1278) then
-          stateNext <= coeff3;
-        end if;
-      when coeff3 =>                         --load data 
-        if (counter2048reg = 1533) then
-            stateNext <= coeff4;
-        end if;
-      when coeff4 =>                         --multiply
-        if (counter2048reg = 1788) then
-            stateNext <= coeff5;
-        end if;
-      when coeff5 =>                         --accumulate 
-        if (counter2048reg = 2043) then
-            stateNext <= coeff1;
-        end if;
-     end case;
-  end process;    
-  
--- combinational logic
-process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter2048reg)
-  begin
-    -- default
-    coeffRe     <= "000000000000";
-    coeffIm     <= "000000000000";
-    addressNext <= addressReg; 
-    counter2048next  <= counter2048reg;
-    case (stateReg) is
-      when coeffIdle =>
-      when coeff1 =>
-        coeffRe <= "010000000000";
-        coeffIm <= "000000000000";
-        counter2048next  <= counter2048reg + 1;
-      when coeff2 =>
-        coeffRe <= regFileCoeffRe;
-        coeffIm <= regFileCoeffIm;
-        addressNext <= addressReg + 1;
-        counter2048next  <= counter2048reg + 1;
-      when coeff3 =>                       
-        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
-        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
-        addressNext <= addressReg - 1;
-        counter2048next  <= counter2048reg + 1;
-      when coeff4 =>                        
-        coeffRe <= regFileCoeffIm;
-        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
-        addressNext <= addressReg + 1;
-        counter2048next  <= counter2048reg + 1;
-      when coeff5 =>                        
-        coeffRe <= regFileCoeffRe;
-        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
-        addressNext <= addressReg - 1;
-        counter2048next  <= counter2048reg + 1;
-     end case;
-  end process;   
-                             
 complexMult_Inst : complexMult1
     generic map (
             w1 => COL,
@@ -301,4 +211,87 @@ complexMult_Inst : complexMult1
            dataOut2 => regFileCoeffIm
            );
 
+readEn <= '1' when clkCounter > "000010000000000" else '0';
+
+process(S1, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
+begin 
+    if (S1 = '0') then 
+       multInRe <= fifoOutRe;
+       multInIm <= fifoOutIm;
+    else 
+       multInRe <= sumOutRe;
+       multInIm <= sumOutIm; 
+    end if;
+end process;
+
+  -- next state logic
+process(stateReg, addressReg, T1, clkCounter, counter2048reg)
+  begin
+    -- default
+    stateNext <= stateReg;
+    case (stateReg) is
+      when coeffIdle =>
+          if (clkCounter = "000010000000000") then 
+            stateNext <= coeff1;
+          end if;
+      when coeff1 =>
+        if (counter2048reg = 1023) then --1023 before
+          stateNext <= coeff2;
+        end if;
+      when coeff2 =>
+        if (counter2048reg = 1279) then
+          stateNext <= coeff3;
+        end if;
+      when coeff3 =>                         --load data 
+        if (counter2048reg = 1535) then
+            stateNext <= coeff4;
+        end if;
+      when coeff4 =>                         --multiply
+        if (counter2048reg = 1791) then
+            stateNext <= coeff5;
+        end if;
+      when coeff5 =>                         --accumulate 
+        if (counter2048reg = 2047) then
+            stateNext <= coeff1;
+        end if;
+     end case;
+  end process;    
+  
+-- combinational logic
+process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter2048reg)
+  begin
+    -- default
+    coeffRe     <= "000000000000";
+    coeffIm     <= "000000000000";
+    addressNext <= addressReg; 
+    counter2048next  <= counter2048reg;
+    case (stateReg) is
+      when coeffIdle =>
+      when coeff1 =>
+        coeffRe <= "010000000000";--"011111111111"; --"010000000000";
+        coeffIm <= "000000000000";
+        counter2048next  <= counter2048reg + 1;
+      when coeff2 =>
+        coeffRe <= regFileCoeffRe;
+        coeffIm <= regFileCoeffIm;
+        addressNext <= addressReg + 1;
+        counter2048next  <= counter2048reg + 1;
+      when coeff3 =>                       
+        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
+        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+        addressNext <= addressReg - 1;
+        counter2048next  <= counter2048reg + 1;
+      when coeff4 =>                        
+        coeffRe <= regFileCoeffIm;
+        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+        addressNext <= addressReg + 1;
+        counter2048next  <= counter2048reg + 1;
+      when coeff5 =>                        
+        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+        coeffIm <= std_logic_vector(unsigned(regFileCoeffIm));
+        addressNext <= addressReg - 1;
+        counter2048next  <= counter2048reg + 1;
+     end case;
+  end process;   
+                             
 end Behavioral;

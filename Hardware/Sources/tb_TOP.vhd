@@ -43,11 +43,15 @@ ARCHITECTURE behavior OF tb_TOP IS
     --file definitions
     file file_INPUT_X_Re : text;
     file file_INPUT_X_Im : text;
+    file file_OUTPUTS_Re : text;
+    file file_OUTPUTS_Im : text;
     
    -- Clock period definitions
-   constant clk_period : time := 10 ns;
-   
+   constant clk_period : time := 10 ns;  
    signal clk_counter : integer;
+   
+   -- Constants
+   constant COL_WIDTH : natural := 12;
  
 BEGIN
  
@@ -93,6 +97,8 @@ BEGIN
    variable file_row_Im       : line;
    variable input_x_byte_Re   : std_logic_vector(11 downto 0);
    variable input_x_byte_Im   : std_logic_vector(11 downto 0);
+   variable Re_OLINE           : line;
+   variable Im_OLINE           : line;
    
    begin		
       -- hold reset state for 100 ns.
@@ -103,9 +109,10 @@ BEGIN
 
       -- insert stimulus here 
       -- open file for reading C:\Users\ilayd\Documents\ders\etin35\FFT\inputs
-      file_open(file_INPUT_X_Re, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_real.txt", read_mode);
-      file_open(file_INPUT_X_Im, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_imaginary.txt", read_mode);
-  
+      file_open(file_INPUT_X_Re, "C:/Users/allanandersen/EIC1/FFT2048/fft_inputs_binary_real.txt", read_mode);
+      file_open(file_INPUT_X_Im, "C:/Users/allanandersen/EIC1/FFT2048/fft_inputs_binary_imaginary.txt", read_mode);
+      file_open(file_OUTPUTS_Re, "C:/Users/allanandersen/EIC1/FFT2048/fft_outputs_real.txt", write_mode);
+      file_open(file_OUTPUTS_Im, "C:/Users/allanandersen/EIC1/FFT2048/fft_outputs_imaginary.txt", write_mode);         
             
       loop
           
@@ -120,6 +127,12 @@ BEGIN
           externalInputRe <= input_x_byte_Re;
           externalInputIm <= input_x_byte_Im;
           
+          if (validOutput = '1') then
+             write(Re_OLINE, externalOutputRe, right, COL_WIDTH);
+             write(Im_OLINE, externalOutputIm, right, COL_WIDTH);
+             writeline(file_OUTPUTS_Re, Re_OLINE);
+             writeline(file_OUTPUTS_Im, Im_OLINE);         
+           end if;
         wait for clk_period/2;
         
       end loop;
@@ -127,9 +140,23 @@ BEGIN
       -- closing file
       file_close(file_INPUT_X_Re);
       file_close(file_INPUT_X_Im);
+      file_close(file_OUTPUTS_Re);
+      file_close(file_OUTPUTS_Im);
       
       wait;
           
    end process;
+
+--   WriteToFile : process(validOutput,externalOutputRe)
+        
+--   begin      
+
+        
+        
+        
+       
+--        --wait;
+--   end process;
+
 
 END;

@@ -28,8 +28,8 @@ signal multOutRe1Reg, multOutRe2Reg, multOutIm1Reg, multOutIm2Reg : signed( (2*w
 signal multOutRe1Next, multOutRe2Next, multOutIm1Next, multOutIm2Next : signed( (2*w1-4) downto 0);
 
 --Output registers for critical path
-signal multOutReNext, multOutImNext : signed( (2*w1-4) downto 0);
-signal multOutReReg, multOutImReg : signed( (2*w1-4) downto 0);
+signal multOutReNext, multOutImNext : signed( (w2-1) downto 0);
+signal multOutReReg, multOutImReg : signed( (w2-1) downto 0);
 
 begin
 
@@ -70,13 +70,19 @@ multOutRe2Next <= multInImReg*coeffImReg;
 multOutIm1Next <= multInImReg*coeffReReg;
 multOutIm2Next <= multInReReg*coeffImReg;
 
-multOutReNext <= multOutRe1Reg - multOutRe2Reg;
-multOutImNext <= multOutIm1Reg + multOutIm2Reg;
+multOutReNext <= (multOutRe1Reg(2*w1-4) & multOutRe1Reg((2*w1-6) downto (2*w1-4-w2))) - (multOutRe2Reg(2*w1-4) & multOutRe2Reg((2*w1-6) downto (2*w1-4-w2))) ;
+multOutRe <= std_logic_vector(multOutReReg);
 
-process(multOutReReg, multOutImReg)
-    begin
-        multOutRe <= std_logic_vector(multOutReReg(2*w1-4) & multOutReReg((2*w1-6) downto (2*w1-4-w2)));
-        multOutIm <= std_logic_vector(multOutImReg(2*w1-4) & multOutImReg((2*w1-6) downto (2*w1-4-w2)));
-    end process;
+multOutImNext <= (multOutIm1Reg(2*w1-4) & multOutIm1Reg((2*w1-6) downto (2*w1-4-w2))) + (multOutIm2Reg(2*w1-4) & multOutIm2Reg((2*w1-6) downto (2*w1-4-w2))) ;
+multOutIm <= std_logic_vector(multOutImReg);
+
+--multOutReNext <= multOutRe1Reg - multOutRe2Reg;
+--multOutImNext <= multOutIm1Reg + multOutIm2Reg;
+
+--process(multOutReReg, multOutImReg)
+--    begin
+--        multOutRe <= std_logic_vector(multOutReReg(2*w1-4) & multOutReReg((2*w1-6) downto (2*w1-4-w2)));
+--        multOutIm <= std_logic_vector(multOutImReg(2*w1-4) & multOutImReg((2*w1-6) downto (2*w1-4-w2)));
+--    end process;
 
 end Behavioral;

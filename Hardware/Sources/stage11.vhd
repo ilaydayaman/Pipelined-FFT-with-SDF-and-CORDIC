@@ -110,18 +110,18 @@ myButterfly11_Im_Inst : myButterfly
             );
 
 --clk_counter_out************************
-readEn  <= '1' when (unsigned(clkCounter) > 1540) else '0'; --******************************************************** change the clock cycle to input of the stage
-writeEn <= '1' when (unsigned(clkCounter) > 1028) else '0'; --*********************************************** 
+--readEn  <= '1' when (unsigned(clkCounter) > 1540) else '0'; --******************************************************** change the clock cycle to input of the stage
+--writeEn <= '1' when (unsigned(clkCounter) > 1028) else '0'; --*********************************************** 
                                                             --should add this signal and remove it from upper process with registers
-
+-- First output from stage 11 at CC: 2078, with S11 = '1' and T11 = '0'
 process(S, fifoInReReg, fifoInImReg, sumOutRe, sumOutIm)
 begin
     if (S = '0') then
-       stageOutputRe <= fifoInReReg( 11 downto 0);
-       stageOutputIm <= fifoInImReg( 11 downto 0);
+       stageOutputRe <= fifoInReReg(15) & fifoInReReg(11 downto 1);
+       stageOutputIm <= fifoInImReg(15) & fifoInImReg(11 downto 1);
     else
-       stageOutputRe <= sumOutRe( 11 downto 0);
-       stageOutputIm <= sumOutIm( 11 downto 0);
+       stageOutputRe <= sumOutRe(15) & sumOutRe( 11 downto 1);
+       stageOutputIm <= sumOutIm(15) & sumOutIm( 11 downto 1);
     end if;
 end process;
 

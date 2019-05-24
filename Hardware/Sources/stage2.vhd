@@ -83,7 +83,7 @@ end component;
 signal sumOutRe, subOutRe, sumOutIm, subOutIm :  std_logic_vector( COL-1 downto 0);
 signal multInRe, multInIm : std_logic_vector( COL-1 downto 0);
 signal coeffRe, coeffIm : std_logic_vector( 11 downto 0);
-signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
+--signal multOutRe, multOutIm : std_logic_vector( (w2-1) downto 0);
 
 signal writeEn : std_logic;
 signal readEn  : std_logic;
@@ -99,22 +99,20 @@ signal stateReg, stateNext : FSM_State;
 signal addressReg, addressNext : unsigned( NOFW-1 downto 0);
 signal regFileCoeffIm, regFileCoeffRe : std_logic_vector(11 downto 0);
 
-signal counter2048Reg, counter2048Next : unsigned ( NOFW downto 0);
+signal counter1024Reg, counter1024Next : unsigned ( NOFW downto 0);
 
 begin
 
 process(clk, rst)
   begin
     if(rst = '1') then
-        writeEn         <= '0';
         stateReg        <= coeffIdle;
         addressReg      <= (others => '0');
-        counter2048reg  <= (others => '0');
+        counter1024reg  <= (others => '0');
     elsif(clk'event and clk = '1') then
-        writeEn         <= '1';
         stateReg        <= stateNext;
         addressReg      <= addressNext;
-        counter2048reg  <= counter2048next;
+        counter1024reg  <= counter1024next;
     end if;
 end process;
 
@@ -213,7 +211,8 @@ complexMult2_Inst : complexMult2
            );
 
 --clk_counter_out
-readEn <= '1' when clkCounter > "0010000000000" else '0'; --01111111111
+readEn  <= '1' when unsigned(clkCounter) >= 1540 else '0'; --CC:1540
+writeEn <= '1' when unsigned(clkCounter) >= 1028 else '0'; --CC: 1028
 
 process(S, fifoOutRe, fifoOutIm, sumOutRe, sumOutIm)
 begin
@@ -227,73 +226,73 @@ begin
 end process;
 
   -- next state logic
-process(stateReg, addressReg, T, clkCounter, counter2048reg)
+process(stateReg, addressReg, T, clkCounter, counter1024reg)
   begin
     -- default
     stateNext <= stateReg;
     case (stateReg) is
       when coeffIdle =>
-          if (clkCounter = "0010000000000") then 
+          if (unsigned(clkCounter) = 1539) then 
             stateNext <= coeff1;
           end if;
       when coeff1 =>
-        if (counter2048reg = 1023) then
+        if (counter1024reg = 511) then
           stateNext <= coeff2;
         end if;
       when coeff2 =>
-        if (counter2048reg = 1278) then
+        if (counter1024reg = 639) then
           stateNext <= coeff3;
         end if;
       when coeff3 =>                         --load data 
-        if (counter2048reg = 1533) then
+        if (counter1024reg = 767) then
             stateNext <= coeff4;
         end if;
       when coeff4 =>                         --multiply
-        if (counter2048reg = 1788) then
+        if (counter1024reg = 895) then
             stateNext <= coeff5;
         end if;
       when coeff5 =>                         --accumulate 
-        if (counter2048reg = 2043) then
+        if (counter1024reg = 1023) then
             stateNext <= coeff1;
         end if;
      end case;
   end process;    
   
 -- combinational logic
-process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter2048reg)
+process(stateReg, regFileCoeffRe, regFileCoeffIm, addressReg, counter1024reg)
   begin
     -- default
     coeffRe     <= "000000000000";
     coeffIm     <= "000000000000";
     addressNext <= addressReg; 
-    counter2048next  <= counter2048reg;
+    counter1024next  <= counter1024reg;
     case (stateReg) is
       when coeffIdle =>
       when coeff1 =>
-        coeffRe <= "000000000001";
-        coeffIm <= "000000000001";
-        counter2048next  <= counter2048reg + 1;
+        coeffRe <= "010000000000";
+        coeffIm <= "000000000000";
+        counter1024next  <= counter1024reg + 1;
       when coeff2 =>
         coeffRe <= regFileCoeffRe;
         coeffIm <= regFileCoeffIm;
         addressNext <= addressReg + 1;
-        counter2048next  <= counter2048reg + 1;
+        counter1024next  <= counter1024reg + 1;
       when coeff3 =>                       
         coeffRe <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
         coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
         addressNext <= addressReg - 1;
-        counter2048next  <= counter2048reg + 1;
+        counter1024next  <= counter1024reg + 1;
       when coeff4 =>                        
         coeffRe <= regFileCoeffIm;
         coeffIm <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
         addressNext <= addressReg + 1;
-        counter2048next  <= counter2048reg + 1;
+        counter1024next  <= counter1024reg + 1;
       when coeff5 =>                        
-        coeffRe <= regFileCoeffRe;
-        coeffIm <= std_logic_vector(unsigned(not(regFileCoeffIm)) + "000000000001");
+        coeffRe <= std_logic_vector(unsigned(not(regFileCoeffRe)) + "000000000001");
+        coeffIm <= std_logic_vector(unsigned(regFileCoeffIm));
         addressNext <= addressReg - 1;
-        counter2048next  <= counter2048reg + 1;
+        counter1024next  <= counter1024reg + 1;
      end case;
-  end process;   
+  end process;  
 
 end Behavioral;
