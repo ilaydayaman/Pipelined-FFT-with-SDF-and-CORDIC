@@ -1,4 +1,4 @@
-function [mult_out_re, mult_out_im] = my_FFT_3(coefficients, input_re,input_im, N)
+function [mult_out_re, mult_out_im] = my_FFT_final(coefficients, input_re,input_im, N)
 
 s = 1;
 % ********** File operation **********

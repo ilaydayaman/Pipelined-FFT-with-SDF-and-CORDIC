@@ -109,10 +109,10 @@ BEGIN
 
       -- insert stimulus here 
       -- open file for reading C:\Users\ilayd\Documents\ders\etin35\FFT\inputs
-      file_open(file_INPUT_X_Re, "C:/Users/allanandersen/EIC1/FFT2048/fft_inputs_binary_real.txt", read_mode);
-      file_open(file_INPUT_X_Im, "C:/Users/allanandersen/EIC1/FFT2048/fft_inputs_binary_imaginary.txt", read_mode);
-      file_open(file_OUTPUTS_Re, "C:/Users/allanandersen/EIC1/FFT2048/fft_outputs_real.txt", write_mode);
-      file_open(file_OUTPUTS_Im, "C:/Users/allanandersen/EIC1/FFT2048/fft_outputs_imaginary.txt", write_mode);         
+      file_open(file_INPUT_X_Re, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_real.txt", read_mode);
+      file_open(file_INPUT_X_Im, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_inputs_binary_imaginary.txt", read_mode);
+      file_open(file_OUTPUTS_Re, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_outputs_real.txt", write_mode);
+      file_open(file_OUTPUTS_Im, "C:/Users/ilayd/Documents/ders/etin35/FFT/inputs/fft_outputs_imaginary.txt", write_mode);         
             
       loop
           
