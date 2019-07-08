@@ -1,6 +1,6 @@
 # 2048-Point-SDF-Architecture-FFT-Project
 
-This project aims to design a pipelined radix-2 FFT with SDF architecture for 2048 Points.  
+This project aims to design a pipelined radix-2 FFT with SDF architecture for 2048 Points. The Cordic algorithm is added to the first stage and dedicated multipliers are added to the 9th and 10th stages for optimization.  
 
 Date: 8 July 2019
 
