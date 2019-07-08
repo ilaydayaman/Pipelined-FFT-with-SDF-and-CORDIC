@@ -1,88 +1,63 @@
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 
 entity complexMult10 is
-    Generic ( w1 : integer;
-              w2 : integer);
-    Port (
-           clk       : in  std_logic;
-           rst       : in  std_logic;
-           multInRe  : in std_logic_vector( (w1-1) downto 0);
-           multInIm  : in std_logic_vector( (w1-1) downto 0);
-           coeffRe   : in std_logic_vector( (11) downto 0);
-           coeffIm   : in std_logic_vector( (11) downto 0);
-           multOutRe : out std_logic_vector( (w2-1) downto 0);
-           multOutIm : out std_logic_vector( (w2-1) downto 0));
+  generic (w1  : integer;
+            w2 : integer);
+  port (
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    counter3Bit : in  std_logic_vector (2 downto 0);
+    multInRe    : in  std_logic_vector((w1-1) downto 0);
+    multInIm    : in  std_logic_vector((w1-1) downto 0);
+    multOutRe   : out std_logic_vector((w2-1) downto 0);
+    multOutIm   : out std_logic_vector((w2-1) downto 0));
 end complexMult10;
 
 architecture Behavioral of complexMult10 is
 
 --Input registers for critical path
-signal multInReNext, multInImNext : signed( (w1-1) downto 0);
-signal multInReReg , multInImReg  : signed( (w1-1) downto 0);
-signal coeffReNext, coeffImNext   : signed( 11 downto 0);
-signal coeffReReg, coeffImReg     : signed( 11 downto 0);
+  signal multInReNext, multInImNext : signed((w1-1) downto 0);
+  signal multInReReg , multInImReg  : signed((w1-1) downto 0);
 
-signal multOutRe1Reg, multOutRe2Reg, multOutIm1Reg, multOutIm2Reg : signed( (2*w1-5) downto 0);
-signal multOutRe1Next, multOutRe2Next, multOutIm1Next, multOutIm2Next : signed( (2*w1-5) downto 0);
-
---Output registers for critical path
-signal multOutReNext, multOutImNext : signed( (w2-1) downto 0);
-signal multOutReReg, multOutImReg : signed( (w2-1) downto 0);
+  signal multOutRe1Reg, multOutIm1Reg   : signed((w1-1) downto 0);
+  signal multOutRe1Next, multOutIm1Next : signed((w1-1) downto 0);
 
 begin
 
-process(clk, rst)
+  process(clk, rst)
   begin
     if(rst = '1') then
       multOutRe1Reg <= (others => '0');
-      multOutRe2Reg <= (others => '0');
       multOutIm1Reg <= (others => '0');
-      multOutIm2Reg <= (others => '0');
-      multOutReReg <=  (others => '0');
-      multOutImReg <=  (others => '0');
-      multInReReg  <=  (others => '0');
-      multInImReg  <=  (others => '0');
-      coeffReReg   <=  (others => '0');
-      coeffImReg   <=  (others => '0');
+      multInReReg   <= (others => '0');
+      multInImReg   <= (others => '0');
     elsif(clk'event and clk = '1') then
       multOutRe1Reg <= multOutRe1Next;
-      multOutRe2Reg <= multOutRe2Next;
       multOutIm1Reg <= multOutIm1Next;
-      multOutIm2Reg <= multOutIm2Next;
-      multOutReReg  <= multOutReNext;
-      multOutImReg  <= multOutImNext;
       multInReReg   <= multInReNext;
       multInImReg   <= multInImNext;
-      coeffReReg    <= coeffReNext;
-      coeffImReg    <= coeffImNext;
     end if;
   end process;
 
-multInReNext <= signed(multInRe);
-multInImNext <= signed(multInIm);
-coeffReNext  <= signed(coeffRe);
-coeffImNext  <= signed(coeffIm);
+  multInReNext <= signed(multInRe);
+  multInImNext <= signed(multInIm);
 
-multOutRe1Next <= multInReReg*coeffReReg;
-multOutRe2Next <= multInImReg*coeffImReg;
-multOutIm1Next <= multInImReg*coeffReReg;
-multOutIm2Next <= multInReReg*coeffImReg;
 
-multOutReNext <= (multOutRe1Reg(2*w1-5) & multOutRe1Reg((2*w1-7) downto (2*w1-5-w2))) - (multOutRe2Reg(2*w1-5) & multOutRe2Reg((2*w1-7) downto (2*w1-5-w2))) ;
-multOutRe <= std_logic_vector(multOutReReg);
 
-multOutImNext <= (multOutIm1Reg(2*w1-5) & multOutIm1Reg((2*w1-7) downto (2*w1-5-w2))) + (multOutIm2Reg(2*w1-5) & multOutIm2Reg((2*w1-7) downto (2*w1-5-w2))) ;
-multOutIm <= std_logic_vector(multOutImReg);
+  with counter3Bit select
+    multOutRe1Next <= "0000000000000000" when "000",
+    multInImReg                          when "100",
+    multInReReg                          when others;
 
---multOutReNext <= multOutRe1Reg - multOutRe2Reg;
---multOutImNext <= multOutIm1Reg + multOutIm2Reg;
+  with counter3Bit select
+    multOutIm1Next <= "0000000000000000" when "000",
+    not(multInReReg)+1                   when "100",
+    multInImReg                          when others;
 
---process(multOutReReg, multOutImReg)
---    begin
---        multOutRe <= std_logic_vector(multOutReReg(2*w1-5) & multOutReReg((2*w1-7) downto (2*w1-5-w2)));
---        multOutIm <= std_logic_vector(multOutImReg(2*w1-5) & multOutImReg((2*w1-7) downto (2*w1-5-w2)));
---    end process;
+  multOutRe <= '0' & std_logic_vector(multOutRe1Reg(15 downto 1)) when (multOutRe1Reg(15) = '0') else '1' & std_logic_vector(multOutRe1Reg(15 downto 1));
+  multOutIm <= '0' & std_logic_vector(multOutIm1Reg(15 downto 1)) when (multOutIm1Reg(15) = '0') else '1' & std_logic_vector(multOutIm1Reg(15 downto 1));
 
 end Behavioral;
+
