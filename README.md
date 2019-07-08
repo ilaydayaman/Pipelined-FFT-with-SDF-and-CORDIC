@@ -7,7 +7,7 @@ Date: 8 July 2019
 Participant(s):
 
 Ilayda Yaman https://www.linkedin.com/in/ilayda-yaman-9bba0ab1/ <br/>
-Allan Andersen 
+Allan Andersen https://www.linkedin.com/in/allan-andersen-b7a2a194/
 
 **************************************************************************
 
